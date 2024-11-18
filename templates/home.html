@@ -1,0 +1,58 @@
+{% extends "base.html" %}
+{% block title %}Home{% endblock %}
+{% block content %}
+<h1 align="center">Images</h1>
+
+<ul class="list-group list-group-flush" id="images">
+  {% for image in user.images %}
+  <li class="list-group-item">
+    <img src="data:image/jpeg;base64,{{ image.picture | b64encode }}" alt="Uploaded Image" style="max-width: 200px;">
+    <button type="button" class="close" onClick="deleteImg({{ image.id }})">
+      <span aria-hidden="true">&times;</span>
+    </button>
+  </li>
+  {% endfor %}
+</ul>
+
+<form method="POST" enctype="multipart/form-data" onsubmit="return validateImageForm()">
+  <div class="form-group">
+    <input type="file" name="image" accept="image/*" class="form-control-file" id="imageInput" multiple>
+  </div>
+  <div align="center">
+    <button type="submit" class="btn btn-primary">Upload Image</button>
+  </div>
+</form>
+
+{% endblock %}
+
+<script>
+function deleteImg(imgId) {
+  fetch("/delete-img", {
+    method: "POST",
+    body: JSON.stringify({ imgID: imgId }),
+    headers: { "Content-Type": "application/json" }
+  }).then((_res) => {
+    window.location.href = "/";
+  });
+}
+
+function validateImageForm() {
+  const imageInput = document.getElementById("imageInput");
+  const maxFileSize = 2 * 1024 * 1024; 
+  const maxFileCount = 5;
+
+  if (imageInput.files.length > maxFileCount) {
+    alert(`You can only upload up to ${maxFileCount} images.`);
+    return false;
+  }
+
+  for (let i = 0; i < imageInput.files.length; i++) {
+    if (imageInput.files[i].size > maxFileSize) {
+      alert(`The file ${imageInput.files[i].name} exceeds the 2MB size limit.`);
+      return false;
+    }
+  }
+
+  return true;
+}
+</script>
